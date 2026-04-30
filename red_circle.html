@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>jsPsych Experiment</title>
+    <!-- jsPsych 7 CDN -->
+    <script src="https://unpkg.com/jspsych@7.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.0"></script>
+    <link href="https://unpkg.com/jspsych@7.1.0/css/jspsych.css" rel="stylesheet" type="text/css" />
+    <style>
+        /* 1. 背景色を灰色 (#808080) に設定 */
+        body {
+            background-color: #808080;
+            color: white; /* テキストを見やすくするために白に設定 */
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 2. 直径100pxの赤い円を作成 */
+        .red-circle {
+            width: 100px;
+            height: 100px;
+            background-color: #ff0000;
+            border-radius: 50%;
+            margin: 0 auto;
+        }
+
+        /* 中央揃えの補助設定 */
+        .jspsych-content-wrapper {
+            background-color: #808080;
+        }
+    </style>
+</head>
+<body></body>
+<script>
+    /**
+     * jsPsychの初期化
+     */
+    const jsPsych = initJsPsych({
+        on_finish: function() {
+            // 実験終了時にデータを表示（デバッグ用）
+            // jsPsych.data.displayData();
+        }
+    });
+
+    // タイムラインの作成
+    const timeline = [];
+
+    /**
+     * 試行1: 赤い円の提示
+     * 仕様: 直径100pxの赤い円、スペースキーで終了
+     */
+    const stimulus_trial = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: '<div class="red-circle"></div>',
+        choices: [' '], // スペースキーのみ反応
+        prompt: '<p style="margin-top: 20px;">スペースキーを押してください</p>',
+        data: { task: 'circle_presentation' }
+    };
+    timeline.push(stimulus_trial);
+
+    /**
+     * 試行2: 終了メッセージ
+     */
+    const end_message = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: '<h1>実験が終了しました。</h1><p>ご協力ありがとうございました。</p>',
+        choices: "NO_KEYS", // キー入力を受け付けない（一定時間で終了させる場合など）
+        trial_duration: 3000 // 3秒間表示して終了
+    };
+    timeline.push(end_message);
+
+    /**
+     * 実験の実行
+     */
+    jsPsych.run(timeline);
+
+</script>
+</html>
