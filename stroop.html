@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stroop Task - jsPsych</title>
+    <!-- jsPsych 核心ライブラリとCSS -->
+    <script src="https://unpkg.com/jspsych@7.3.4"></script>
+    <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet" type="text/css" />
+    
+    <!-- 必要なプラグインの読み込み (全画面プラグインはエラー回避のため除外) -->
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
+
+    <style>
+        /* 実験画面全体のスタイル設定 */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: #FFFFFF;
+            font-family: "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+            overflow: hidden; /* スクロールバーを隠す */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* jsPsychのメインコンテナ */
+        #jspsych-target {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 教示テキストのスタイル（画面に収まるように調整） */
+        .instructions-container {
+            font-size: 24px;
+            line-height: 1.6;
+            max-width: 90vw;
+            max-height: 90vh;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: left;
+            overflow-y: auto; /* 万が一溢れた場合にスクロール可能に */
+        }
+
+        /* 刺激（文字）のスタイル */
+        .stroop-stimulus {
+            font-size: 60px;
+            font-weight: bold;
+            user-select: none;
+            text-align: center;
+        }
+
+        /* 注視点のスタイル */
+        .fixation {
+            font-size: 60px;
+            font-weight: normal;
+            text-align: center;
+        }
+
+        /* キーボードキーの装飾（教示用） */
+        kbd {
+            background-color: #eee;
+            border-radius: 4px;
+            border: 1px solid #b4b4b4;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+            color: #333;
+            display: inline-block;
+            font-weight: bold;
+            padding: 2px 8px;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div id="jspsych-target"></div>
+
+    <script>
+        const jsPsych = initJsPsych({
+            display_element: 'jspsych-target',
+            on_finish: function() {
+                // 実験終了後にCSV形式でデータを表示
+                jsPsych.data.displayData('csv');
+            }
+        });
+
+        // 刺激構成の定義
+        const words = ["赤", "青", "緑"];
+        const colors = ["red", "blue", "green"];
+        const keyMap = { "red": "r", "blue": "b", "green": "g" };
+
+        let stimuli_pool = [];
+        for (let w of words) {
+            for (let c of colors) {
+                // 一致(congruent)か不一致(incongruent)かを判定
+                const isCongruent = (
+                    (w === "赤" && c === "red") || 
+                    (w === "青" && c === "blue") || 
+                    (w === "緑" && c === "green")
+                );
+
+                stimuli_pool.push({
+                    stimulus: `<div class="stroop-stimulus" style="color: ${c};">${w}</div>`,
+                    data: {
+                        task: 'response',
+                        word: w,
+                        color: c,
+                        condition: isCongruent ? "congruent" : "incongruent",
+                        correct_response: keyMap[c]
+                    }
+                });
+            }
+        }
+
+        // 10試行をランダムに抽出
+        const test_stimuli = jsPsych.randomization.sampleWithReplacement(stimuli_pool, 10);
+
+        const timeline = [];
+
+        // 教示画面
+        const instructions = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: `
+                <div class="instructions-container">
+                    <p>文字の<b>「色」</b>をできるだけ早く正確にキーボードで答えてください。</p>
+                    <p>文字の意味（漢字）に惑わされないように注意してください。</p>
+                    <br>
+                    <p>・<span style="color: red;">赤色</span>なら <kbd>r</kbd> キー</p>
+                    <p>・<span style="color: blue;">青色</span>なら <kbd>b</kbd> キー</p>
+                    <p>・<span style="color: green;">緑色</span>なら <kbd>g</kbd> キー</p>
+                    <br>
+                    <p style="text-align: center;"><b>スペースキー</b>を押すと開始します。</p>
+                </div>
+            `,
+            choices: [' '],
+            post_trial_gap: 1000
+        };
+        timeline.push(instructions);
+
+        test_stimuli.forEach((stim, index) => {
+            
+            // 注視点提示 (500ms)
+            const fixation = {
+                type: jsPsychHtmlKeyboardResponse,
+                stimulus: '<div class="fixation">+</div>',
+                choices: "NO_KEYS",
+                trial_duration: 500,
+                data: { task: 'fixation' }
+            };
+
+            // 刺激提示 (キー入力まで無限)
+            const trial = {
+                type: jsPsychHtmlKeyboardResponse,
+                stimulus: stim.stimulus,
+                choices: ['r', 'g', 'b'],
+                data: stim.data,
+                on_finish: function(data) {
+                    // 正誤判定
+                    data.correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
+                }
+            };
+
+            // 試行間隔 (ITI: 1000ms)
+            const feedback_gap = {
+                type: jsPsychHtmlKeyboardResponse,
+                stimulus: '',
+                choices: "NO_KEYS",
+                trial_duration: 1000,
+                data: { task: 'iti' }
+            };
+
+            timeline.push(fixation);
+            timeline.push(trial);
+            timeline.push(feedback_gap);
+        });
+
+        // 実験の開始
+        jsPsych.run(timeline);
+
+    </script>
+</body>
+</html>
