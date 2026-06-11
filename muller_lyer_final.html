@@ -125,65 +125,6 @@
       box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15) !important;
     }
 
-    /* --- 結果テーブル用のスタイル --- */
-    .result-section-title {
-      font-size: 1.1rem;
-      font-weight: bold;
-      color: #1f2937;
-      margin: 16px 0 8px 0;
-      width: 100%;
-      text-align: left;
-      border-left: 4px solid #4f46e5;
-      padding-left: 8px;
-    }
-
-    .result-table-container {
-      width: 100%;
-      max-height: 200px; /* 縦幅に複数テーブルが収まるよう適度に制限 */
-      overflow-y: auto;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      margin-bottom: 16px;
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
-    }
-
-    .result-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.95rem;
-      text-align: center;
-    }
-
-    .result-table th {
-      background-color: #f9fafb;
-      color: #4b5563;
-      font-weight: bold;
-      padding: 10px 8px;
-      position: sticky;
-      top: 0;
-      border-bottom: 2px solid #e5e7eb;
-      z-index: 1;
-    }
-
-    .result-table td {
-      padding: 8px;
-      border-bottom: 1px solid #e5e7eb;
-      color: #374151;
-    }
-
-    .result-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    .result-table tr:nth-child(even) {
-      background-color: #f9fafb;
-    }
-
-    /* 最も錯視が強い行をハイライトするCSS */
-    .highlight-row {
-      background-color: #fef3c7 !important; /* 薄い黄色 */
-    }
-
     /* --- jsPsych標準スライダーレイアウトの競合回避と最適化 --- */
     
     /* 大元のラッパーのマージンをリセット */
@@ -378,7 +319,7 @@
           body: JSON.stringify(trialsForGas)
         })
         .then(response => {
-          // no-corsモード時などは正常に応答を読めないケースがあるため、安全にフォールバック
+          // 安全にフォールバック
           showFinalResults(trialsForGas, csvData, "自動データ保存に成功しました！", null);
         })
         .catch(error => {
@@ -625,196 +566,28 @@
         <div class="instruction-title">テストがおわりました！</div>
         <div class="end-text" style="text-align: center;">
           <p>がんばって答えてくれて、ありがとうございました。</p>
-          <p>下のボタンを押すと、データを保存して今回の結果を表示します。</p>
+          <p>下のボタンを押すと、データを送信して実験を完了します。</p>
         </div>
       `,
-      choices: ['データを保存して結果を見る']
+      choices: ['データを保存して完了する']
     };
     timeline.push(end_screen);
 
-    // 6. 最終結果の表示（集計用テーブルと個別テーブルを表示）
+    // 6. 最終結果の表示（「ご協力ありがとうございました」のみを表示）
     function showFinalResults(trials, csvData, statusMessage, errorMessage) {
-      
-      // --- データ集計 (各条件の平均値算出) ---
-      const summaryData = {};
-      let maxAbsError = 1; // グラフのスケール用（最小1とする）
-
-      trials.forEach(trial => {
-        const key = `${trial.angle}°- ${trial.wing_length}px`;
-        if (!summaryData[key]) {
-          summaryData[key] = {
-            angle: trial.angle,
-            wing_length: trial.wing_length,
-            pseSum: 0,
-            errorSum: 0,
-            count: 0
-          };
-        }
-        summaryData[key].pseSum += trial.pse;
-        summaryData[key].errorSum += trial.error_amount;
-        summaryData[key].count += 1;
-      });
-
-      // グラフの最大幅をスケーリングするために、最大誤差の絶対値を求める
-      Object.keys(summaryData).forEach(key => {
-        const avgError = Math.abs(summaryData[key].errorSum / summaryData[key].count);
-        if (avgError > maxAbsError) {
-          maxAbsError = avgError;
-        }
-      });
-
-      // 最も錯視量（平均誤差の絶対値）が大きかった条件（最大錯視条件）のキーを特定する
-      let maxIllusionKey = '';
-      let maxIllusionVal = -1;
-      Object.keys(summaryData).forEach(key => {
-        const absErr = Math.abs(summaryData[key].errorSum / summaryData[key].count);
-        if (absErr > maxIllusionVal) {
-          maxIllusionVal = absErr;
-          maxIllusionKey = key;
-        }
-      });
-
-      // 集計表の行を作成
-      let summaryRows = '';
-      Object.keys(summaryData).sort().forEach(key => {
-        const data = summaryData[key];
-        const avgPse = data.pseSum / data.count;
-        const avgError = data.errorSum / data.count;
-
-        const displayError = avgError > 0 ? `+${avgError.toFixed(1)}` : `${avgError.toFixed(1)}`;
-        const errorColor = avgError >= 0 ? '#ef4444' : '#3b82f6'; // プラスは赤、マイナスは青
-        
-        // グラフバーの幅計算（最大値を50%として双方向に伸ばす）
-        const barWidth = Math.min(50, (Math.abs(avgError) / maxAbsError) * 50);
-
-        // 最大錯視条件に王冠を付与してハイライト
-        const isMax = key === maxIllusionKey;
-        const rowClass = isMax ? 'class="highlight-row"' : '';
-        const crownIcon = isMax ? '<span style="color: #d97706; font-weight: bold; margin-right: 4px;">👑</span>' : '';
-
-        summaryRows += `
-          <tr ${rowClass}>
-            <td style="font-weight: 600;">${crownIcon}${data.angle}°</td>
-            <td style="font-weight: 600;">${data.wing_length}px</td>
-            <td>${avgPse.toFixed(1)}px</td>
-            <td style="font-weight: bold; color: ${errorColor};">${displayError}px</td>
-            <!-- 直感的な視覚バーグラフ（0を中心に左右へ伸びる） -->
-            <td style="width: 130px; padding: 4px 8px;">
-              <div style="display: flex; align-items: center; justify-content: center; width: 110px; height: 16px; background: #f3f4f6; border-radius: 9999px; overflow: hidden; position: relative; margin: 0 auto; border: 1px solid #e5e7eb;">
-                <!-- 中心ゼロライン -->
-                <div style="position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: #cbd5e1; z-index: 2;"></div>
-                <!-- マイナス側の青バー（左に伸びる） -->
-                <div style="position: absolute; right: 50%; top: 0; bottom: 0; width: ${avgError < 0 ? barWidth : 0}%; background: #3b82f6; border-radius: 2px 0 0 2px;"></div>
-                <!-- プラス側の赤バー（右に伸びる） -->
-                <div style="position: absolute; left: 50%; top: 0; bottom: 0; width: ${avgError > 0 ? barWidth : 0}%; background: #ef4444; border-radius: 0 2px 2px 0;"></div>
-              </div>
-            </td>
-          </tr>
-        `;
-      });
-
-      // 個別試行結果の行を作成
-      let individualRows = '';
-      trials.forEach((trial, index) => {
-        const angle = trial.angle;
-        const length = trial.wing_length;
-        const adjLen = trial.pse;
-        const error = trial.error_amount;
-        
-        const displayError = error > 0 ? `+${error.toFixed(1)}` : `${error.toFixed(1)}`;
-        const errorColor = error >= 0 ? '#ef4444' : '#3b82f6';
-
-        individualRows += `
-          <tr>
-            <td>${index + 1}</td>
-            <td>${angle}°</td>
-            <td>${length}px</td>
-            <td>${adjLen.toFixed(1)}px</td>
-            <td style="font-weight: bold; color: ${errorColor};">${displayError}px</td>
-          </tr>
-        `;
-      });
-
-      // エラー/成功メッセージのテーマカラー設定
-      const statusColor = errorMessage ? '#d97706' : '#10b981'; // 警告はオレンジ、成功は緑
-      const statusBg = errorMessage ? '#fef3c7' : '#ecfdf5';
-      const statusIcon = errorMessage ? '⚠️' : '✅';
-
       const target = document.getElementById('jspsych-target');
+      
+      // 実験結果データ表示を完全に排除し、画面中央に感謝のテキストのみを綺麗に配置
       target.innerHTML = `
-        <div class="jspsych-content" style="max-width: 650px; max-height: 95vh; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; align-items: center;">
-          <div class="instruction-title">あなたのテスト結果</div>
-          
-          <!-- 送信状況 / エラーハンドリングメッセージ -->
-          <div style="background-color: ${statusBg}; border: 1px solid ${statusColor}; color: ${statusColor}; padding: 12px 14px; border-radius: 10px; margin-bottom: 12px; width: 100%; box-sizing: border-box; text-align: left; font-size: 13px; line-height: 1.5;">
-            <strong>${statusIcon} ${statusMessage}</strong>
-            ${errorMessage ? `<br><span style="font-size: 11px; color: #4b5563; margin-top: 4px; display: inline-block;">${errorMessage}</span>` : ''}
+        <div class="jspsych-content" style="max-width: 600px; text-align: center; padding: 48px 32px;">
+          <div style="font-size: 3.5rem; margin-bottom: 24px;">🤝</div>
+          <div class="instruction-title" style="font-size: 1.8rem; color: #111827; margin-bottom: 16px;">
+            ご協力ありがとうございました
           </div>
-
-          <p class="end-text" style="width: 100%; margin-bottom: 12px; font-size: 14px; text-align: center; line-height: 1.5;">
-            参加者ID: <strong>${trials[0]?.subject_id || '未入力'}</strong><br>
-            全12回のテスト結果（もとの線の長さは <strong>200px</strong> です）
+          <p class="end-text" style="text-align: center; color: #4b5563; font-size: 1.1rem; margin-bottom: 0;">
+            これで、すべての目の錯覚テストは終了です。<br>
+            そのまま画面を閉じてください。
           </p>
-
-          <!-- 条件ごとの平均結果テーブル -->
-          <div class="result-section-title">📊 条件ごとの平均結果（まとめ）</div>
-          <div class="result-table-container" style="max-height: 190px; margin-bottom: 12px;">
-            <table class="result-table">
-              <thead>
-                <tr>
-                  <th>羽の角度</th>
-                  <th>羽の長さ</th>
-                  <th>平均PSE</th>
-                  <th>平均のズレ</th>
-                  <th style="width: 130px;">ズレの方向</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${summaryRows}
-              </tbody>
-            </table>
-          </div>
-
-          <!-- 結果のかんたんな見方カード -->
-          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; text-align: left; width: 100%; box-sizing: border-box;">
-            <h4 style="margin: 0 0 6px 0; color: #166534; font-size: 14px; display: flex; align-items: center; gap: 6px;">
-              💡 結果のかんたんな見方
-            </h4>
-            <p style="margin: 0; font-size: 11px; color: #374151; line-height: 1.6;">
-              ・<strong>マイナスのズレ（青グラフ 🟦）</strong>：下の線が実際より<strong>長く見えた</strong>ため、短めに調整した状態です（ミュラー・リヤー錯視の効果です！）。<br>
-              ・<strong>プラスのズレ（赤グラフ 🟥）</strong>：下の線が実際より<strong>短く見えた</strong>ことを表します。<br>
-              ・👑 マークは、あなたが最も「だまされやすかった（錯視が強かった）」条件です。羽が鋭く、長いほど錯視が強くなります。
-            </p>
-          </div>
-
-          <!-- 全12試行の詳細結果テーブル -->
-          <div class="result-section-title">📝 すべての試行結果（詳細）</div>
-          <div class="result-table-container" style="max-height: 140px; margin-bottom: 16px;">
-            <table class="result-table">
-              <thead>
-                <tr>
-                  <th>回数</th>
-                  <th>羽の角度</th>
-                  <th>羽の長さ</th>
-                  <th>決めた長さ</th>
-                  <th>ズレ (誤差)</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${individualRows}
-              </tbody>
-            </table>
-          </div>
-
-          <!-- CSV折りたたみ表示 (データ保存用) -->
-          <details style="width: 100%; margin-bottom: 20px; text-align: left; font-size: 14px;">
-            <summary style="cursor: pointer; font-weight: bold; color: #4f46e5; outline: none; margin-bottom: 8px;">
-              ▶ CSVデータとして表示（手動バックアップ用）
-            </summary>
-            <textarea readonly style="width: 100%; height: 80px; font-family: monospace; font-size: 11px; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; box-sizing: border-box; resize: none; background: #f9fafb;">${csvData}</textarea>
-          </details>
-
-          <button class="jspsych-btn" onclick="window.location.reload();">もう一度テストを行う</button>
         </div>
       `;
     }
