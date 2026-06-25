@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>尚絅学院大学 上野莉緒 の心理学実験室</title>
- 
+  
   <!-- jsPsych core and CSS -->
   <script src="https://unpkg.com/jspsych@7.3.1"></script>
   <link href="https://unpkg.com/jspsych@7.3.1/css/jspsych.css" rel="stylesheet" type="text/css" />
- 
+  
   <!-- jsPsych plugin CDN links -->
   <script src="https://unpkg.com/@jspsych/plugin-canvas-slider-response@1.1.2"></script>
   <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.2"></script>
@@ -150,7 +150,7 @@
     /* メインコンテンツ */
     main {
       flex: 1;
-      max-width: 1000px;
+      max-width: 1100px;
       width: 100%;
       margin: 0 auto;
       padding: 50px 20px;
@@ -221,11 +221,12 @@
 
     /* カード別のテーマカラー分け */
     .card-hw::before { background-color: var(--color-text-muted); }
-    .card-stroop::before { background-color: var(--color-primary); }
+    .card-stroop::before { background-color: #60a5fa; }
     .card-muller::before { background-color: var(--color-accent); }
+    .card-nback::before { background-color: var(--color-primary); } /* 本番用：濃いブルー */
 
     .card-badge {
-      align-self: flex-start;
+      display: inline-block;
       font-size: 0.75rem;
       font-weight: 700;
       padding: 4px 10px;
@@ -241,11 +242,15 @@
     }
     .card-stroop .card-badge {
       background-color: #dbeafe;
-      color: var(--color-primary);
+      color: #1d4ed8;
     }
     .card-muller .card-badge {
       background-color: var(--color-accent-light);
       color: var(--color-accent-hover);
+    }
+    .card-nback .card-badge {
+      background-color: #dbeafe;
+      color: var(--color-primary);
     }
 
     .card-title {
@@ -289,7 +294,7 @@
     }
 
     .btn-stroop {
-      background-color: var(--color-primary);
+      background-color: #3b82f6;
       color: #ffffff;
       box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2);
     }
@@ -307,6 +312,27 @@
       background-color: var(--color-accent-hover);
       color: #ffffff;
       box-shadow: 0 6px 15px rgba(234, 179, 8, 0.3);
+    }
+
+    .btn-nback {
+      background: linear-gradient(135deg, var(--color-primary) 0%, #1d4ed8 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+    .btn-nback:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.4);
+    }
+
+    /* プレレジ用の枠線ボタン */
+    .btn-prereg {
+      background-color: transparent;
+      border: 2px solid var(--color-primary);
+      color: var(--color-primary);
+      box-shadow: none;
+    }
+    .btn-prereg:hover {
+      background-color: var(--color-primary-light);
     }
 
     .card-button:active {
@@ -352,7 +378,7 @@
     }
 
     /* ==========================================================================
-       jsPsych 描画用カスタマイズ & 上書き用スタイル (Muller-Lyer / Stroop)
+        jsPsych 描画用カスタマイズ & 上書き用スタイル (Muller-Lyer / Stroop)
        ========================================================================== */
     .jspsych-content {
       max-width: 700px;
@@ -575,22 +601,43 @@
       
       <div class="experiments-grid">
         
-        <!-- 実験0: はじめてのWebページ -->
-        <div class="experiment-card card-hw">
+        <!-- 【本番用実験】n-back課題 -->
+        <div class="experiment-card card-nback" style="border: 2px solid var(--color-primary); box-shadow: 0 10px 25px rgba(59, 130, 246, 0.12);">
+          <!-- 本番用スターバッジ -->
+          <div style="position: absolute; top: 12px; right: 12px; background-color: var(--color-primary); color: white; font-size: 0.75rem; font-weight: bold; padding: 4px 10px; border-radius: 9999px; box-shadow: 0 2px 5px rgba(37,99,235,0.2);">
+            ★ 本番用実験
+          </div>
           <div>
-            <span class="card-badge">実験 0</span>
-            <h3 class="card-title">はじめてのWebページ</h3>
+            <span class="card-badge">実験 3 • 所要10分</span>
+            <h3 class="card-title" style="margin-top: 5px;">n-back課題</h3>
             <p class="card-description">
-              第2回で作成した記念すべき「Hello World」のページです。すべてのWeb実験のスタートラインとなった最初のページを公開しています。
+              画面に次々と表示される刺激（文字や図形）を記憶し、現在の刺激が「n個前」のものと一致しているかを素早く判断する課題です。ワーキングメモリ（作業記憶）の脳内プロセスを測定します。
             </p>
           </div>
-          <button onclick="launchHelloWorld()" class="card-button btn-hw">Hello Worldを見る</button>
+          
+          <!-- 縦並びのボタングループ（透明性と視覚的なメリハリを重視） -->
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+            <!-- 1. 実験に参加する（メインカラー：目立つ） -->
+            <button onclick="launchNBack()" class="card-button btn-nback">
+              実験に参加する 🚀
+            </button>
+            
+            <!-- 2. プレレジを確認する（白抜き：中間強度） -->
+            <a href="https://github.com/u-rio-psy/my-experiment/blob/main/preregistration.md" target="_blank" rel="noopener noreferrer" class="card-button btn-prereg">
+              📄 プレレジを確認する
+            </a>
+            
+            <!-- 3. 変更履歴（控えめなテキストリンク） -->
+            <a href="https://github.com/u-rio-psy/my-experiment/commits/main/preregistration.md" target="_blank" rel="noopener noreferrer" style="color: var(--color-text-muted); font-size: 0.8rem; text-decoration: underline; text-align: center; display: block; margin-top: 4px; transition: color 0.2s;" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--color-text-muted)'">
+              ⏱️ 変更履歴（タイムスタンプの証明）を確認する
+            </a>
+          </div>
         </div>
 
         <!-- 実験1: ストループ課題 -->
         <div class="experiment-card card-stroop">
           <div>
-            <span class="card-badge" style="background-color: #e0f2fe; color: #0369a1;">実験 1 • 所要3分</span>
+            <span class="card-badge">実験 1 • 所要3分</span>
             <h3 class="card-title">ストループ課題</h3>
             <p class="card-description">
               「文字が表す意味」と「文字に塗られた色」がバラバラのとき、脳の中で起こる干渉効果を調べるテストです。簡単なキーボード入力を使って行います。
@@ -602,13 +649,25 @@
         <!-- 実験2: ミュラー・リヤー錯視 -->
         <div class="experiment-card card-muller">
           <div>
-            <span class="card-badge" style="background-color: #fef9c3; color: #a16207;">実験 2 • 所要2分</span>
+            <span class="card-badge">実験 2 • 所要2分</span>
             <h3 class="card-title">ミュラー・リヤー錯視</h3>
             <p class="card-description">
               図形の端についた羽の向きによって、線の長さが長く見えたり短く見えたりする錯覚（さっかく）の量を測定します。スライダーを使ってピッタリ同じ長さに調整してみましょう！
             </p>
           </div>
           <button onclick="launchMullerLyer()" class="card-button btn-muller">実験2に参加する</button>
+        </div>
+
+        <!-- 実験0: はじめてのWebページ -->
+        <div class="experiment-card card-hw">
+          <div>
+            <span class="card-badge">実験 0</span>
+            <h3 class="card-title">はじめてのWebページ</h3>
+            <p class="card-description">
+              第2回で作成した記念すべき「Hello World」のページです。すべてのWeb実験のスタートラインとなった最初のページを公開しています。
+            </p>
+          </div>
+          <button onclick="launchHelloWorld()" class="card-button btn-hw">Hello Worldを見る</button>
         </div>
 
       </div>
@@ -664,6 +723,30 @@
 
 
     /* ==========================================================================
+       本番実験：n-back課題 (プレースホルダー画面)
+       ========================================================================== */
+    function launchNBack() {
+      prepareExperimentScreen();
+      const target = document.getElementById('experiment-target');
+      
+      target.innerHTML = `
+        <div class="jspsych-content" style="max-width: 600px; text-align: center; padding: 48px 32px;">
+          <div style="font-size: 3.5rem; margin-bottom: 24px;">🧠</div>
+          <div class="instruction-title" style="font-size: 1.8rem; color: #111827; margin-bottom: 16px; font-weight: bold;">
+            n-back課題（本番用実験）
+          </div>
+          <p class="end-text" style="text-align: left; color: #4b5563; font-size: 1.05rem; margin-bottom: 30px; line-height: 1.8;">
+            本番用実験の「n-back課題」の読み込み画面です。<br>
+            この実験は、事前登録（プレレジストレーション）された計画に沿ってデータ収集および分析が行われます。<br><br>
+            ※ 現在、実験プログラム本体の読み込みデモ状態です。プレレジストレーション内容や変更履歴は、ポータル画面のリンクより透明に公開されています。
+          </p>
+          <button class="jspsych-btn" onclick="backToPortal()">ポータルへ戻る</button>
+        </div>
+      `;
+    }
+
+
+    /* ==========================================================================
        実験0: はじめてのWebページ (インタラクティブ・ハローワールド)
        ========================================================================== */
     function launchHelloWorld() {
@@ -714,7 +797,6 @@
       const jsPsychStroop = initJsPsych({
         display_element: 'jspsych-target',
         on_finish: function() {
-          // 終了画面。データの送信ロジックをここに書くことも可能です。
           const target = document.getElementById('experiment-target');
           target.innerHTML = `
             <div class="jspsych-content" style="max-width: 600px; text-align: center; padding: 48px 32px;">
@@ -766,7 +848,6 @@
       };
       stroop_timeline.push(stroop_instructions);
 
-      // 試行データ (一致・不一致の組み合わせ)
       const stroop_trials = [
         { word: 'あか', color: '#ef4444', color_name: '赤', condition: 'congruent' },      // 一致
         { word: 'あお', color: '#3b82f6', color_name: '青', condition: 'congruent' },      // 一致
@@ -776,7 +857,6 @@
         { word: 'みどり', color: '#ef4444', color_name: '赤', condition: 'incongruent' }     // 不一致
       ];
 
-      // ランダムにシャッフル
       const shuffled_stroop = jsPsychStroop.randomization.shuffle(stroop_trials);
 
       shuffled_stroop.forEach((trial_info, index) => {
@@ -794,7 +874,6 @@
             condition: trial_info.condition
           },
           on_finish: function(data) {
-            // 正誤判定
             const chosen_color = ['赤', '青', '緑'][data.response];
             data.correct = (chosen_color === data.correct_color);
           }
@@ -815,10 +894,7 @@
       const jsPsychMuller = initJsPsych({
         display_element: 'jspsych-target',
         on_finish: function() {
-          // データの抽出
           const relevantData = jsPsychMuller.data.get().filter({trial_type: 'canvas-slider-response'});
-          const csvData = relevantData.csv();
-
           const trialsForGas = relevantData.values().map(trial => {
             return {
               subject_id: trial.subject_id,
@@ -830,17 +906,15 @@
             };
           });
 
-          // 送信中表示
           const target = document.getElementById('experiment-target');
           target.innerHTML = `
             <div class="jspsych-content">
               <div class="instruction-title">データを送っています</div>
               <p class="end-text" style="text-align: center;">データをサーバーに送っています。すこしだけお待ちください...</p>
-              <div class="spinner"></div>
+              <div class="spinner" style="border: 4px solid #f3f4f6; border-top: 4px solid var(--color-primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div>
             </div>
           `;
 
-          // GAS送信
           const gasUrl = 'https://script.google.com/macros/s/AKfycbxCr6lLRjAuEQMChu-Gw6swxPn61bFd4bagE_8YuuZZXV5rHYkRft2PEYKOkhLP1C15sA/exec';
           
           fetch(gasUrl, {
@@ -855,13 +929,11 @@
             showFinalThankYou();
           })
           .catch(error => {
-            // 送信に失敗しても感謝メッセージに遷移できるようにする
             showFinalThankYou();
           });
         }
       });
 
-      // 感謝メッセージ表示（「ご協力ありがとうございました」のみを表示）
       function showFinalThankYou() {
         const target = document.getElementById('experiment-target');
         target.innerHTML = `
@@ -879,7 +951,6 @@
         `;
       }
 
-      // ミュラーリヤー設計
       const ml_factors = {
         angle: [15, 75],
         feather_length: [20, 50]
@@ -1003,7 +1074,6 @@
         muller_timeline.push(trial);
       });
 
-      // 実験2の終了前カード
       const ml_end_screen = {
         type: jsPsychHtmlButtonResponse,
         stimulus: `
@@ -1082,5 +1152,13 @@
       ctx.stroke();
     }
   </script>
+  
+  <style>
+    /* ローディング用アニメーション */
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </body>
 </html>
