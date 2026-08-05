@@ -615,24 +615,19 @@
             </p>
           </div>
           
-          <!-- 縦並びのボタングループ -->
+          <!-- 縦並びのボタングループ（透明性と視覚的なメリハリを重視） -->
           <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
-            <!-- 1. 実験に参加する -->
+            <!-- 1. 実験に参加する（メインカラー：目立つ） -->
             <button onclick="launchNBack()" class="card-button btn-nback">
               実験に参加する 🚀
             </button>
             
-            <!-- 2. 実験レポートを見る（my_exp_report.html へのリンク） -->
-            <a href="my_exp_report.html" target="_blank" rel="noopener noreferrer" class="card-button btn-prereg">
-              📊 実験レポートを見る
-            </a>
-
-            <!-- 3. プレレジを確認する -->
+            <!-- 2. プレレジを確認する（白抜き：中間強度） -->
             <a href="https://github.com/u-rio-psy/my-experiment/blob/main/preregistration.md" target="_blank" rel="noopener noreferrer" class="card-button btn-prereg">
               📄 プレレジを確認する
             </a>
             
-            <!-- 4. 変更履歴 -->
+            <!-- 3. 変更履歴（控えめなテキストリンク） -->
             <a href="https://github.com/u-rio-psy/my-experiment/commits/main/preregistration.md" target="_blank" rel="noopener noreferrer" style="color: var(--color-text-muted); font-size: 0.8rem; text-decoration: underline; text-align: center; display: block; margin-top: 4px; transition: color 0.2s;" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--color-text-muted)'">
               ⏱️ 変更履歴（タイムスタンプの証明）を確認する
             </a>
